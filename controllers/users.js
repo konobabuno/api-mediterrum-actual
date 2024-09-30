@@ -1,32 +1,56 @@
-// controllers/users.js
 const connection = require('../db/db');
 const validator = require('validator');
 
 // Obtener todos los usuarios
-const obtenerUsuarios = (req, res) => {
-    connection.query('SELECT * FROM usuarios', (err, results) => {
+const obtenerUsuariosTodos = (req, res) => {
+  const query = `CALL obtener_usuarios_todos()`;
+  
+  connection.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.status(201).json(results);
+  });
+};
+
+// Obtener todos los usuarios
+const obtenerUsuario = (req, res) => {
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results[0].count === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const query = `CALL obtener_usuario(?)`;
+    
+    connection.query(query, [id], (err, results) => {
       if (err) {
         return res.status(500).send(err);
       }
-      res.json(results);
+      res.status(201).json(results);
     });
+  });
 };
 
-// Insertar un nuevo usuario
+// Insertar un usuario
 const insertarUsuario = (req, res) => {
     const { nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador } = req.body;
   
-    // Validar email
     if (!validator.isEmail(email)) {
       return res.status(400).json({ mensaje: 'El formato del email no es válido' });
     }
   
-    // Validar teléfono (solo revisa si tiene caracteres válidos para un teléfono, sin formato internacional)
     if (!validator.isMobilePhone(telefono, 'any', { strictMode: false })) {
       return res.status(400).json({ mensaje: 'El número de celular no es válido' });
     }
   
-    // Verificar unicidad del email y teléfono
     const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE email = ? OR telefono = ?';
   
     connection.query(checkQuery, [email, telefono], (err, results) => {
@@ -38,7 +62,6 @@ const insertarUsuario = (req, res) => {
         return res.status(400).json({ mensaje: 'El email o el número de celular ya está en uso' });
       }
   
-      // Si pasa las validaciones, proceder con la inserción
       const query = `CALL insertar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   
       connection.query(query, [nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador], (err, results) => {
@@ -52,30 +75,100 @@ const insertarUsuario = (req, res) => {
 
 // Eliminar un usuario
 const eliminarUsuario = (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+  
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results[0].count === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
   
     const query = `CALL eliminar_usuario(?)`;
-  
+
     connection.query(query, [id], (err, results) => {
       if (err) {
         return res.status(500).send(err);
       }
-  
-      // Comprobar si se eliminó alguna fila
-      const affectedRows = results?.[0]?.affectedRows || 0; // MySQL retorna las filas afectadas dentro de 'results'
-  
-      if (affectedRows === 0) {
-        return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-      }
-  
-      res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
+      return res.status(200).json({mensaje: "Usuario eliminado correctamente"});
     });
+  });
   };
   
+  // Modificar los datos de un usuario (actualización parcial)
+const modificarUsuarioDatos = (req, res) => {
+  const id = req.params.id;
+  const { nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion } = req.body;
+
+  if (isNaN(id)) {
+      return res.status(400).json({ error: 'ID inválido.' });
+  }
+
+  const query = `CALL modificar_usuario_datos(?, ?, ?, ?, ?)`;
+  const values = [
+      id,
+      nuevoNombre || null || "",
+      nuevoEmail || null || "",
+      nuevoTelefono || null || "",
+      nuevaLocacion || null || ""
+  ];
+
+  connection.query(query, values, (err, results) => {
+      if (err) {
+          return res.status(500).json({mensaje : err.sqlMessage});
+      }
+      res.status(200).json({ mensaje: `Datos de usuario con ID ${id} actualizados correctamente` });
+  });
+};
+
+// Modificar el rol de un usuario
+const modificarUsuarioRol = (req, res) => {
+  const id = req.params.id;
+  const { nuevoRol } = req.body;
+
+  if (isNaN(id) || !['vendedor', 'promotor', 'distribuidor'].includes(nuevoRol)) {
+    return res.status(400).json({ error: 'ID inválido o rol no válido.' });
+  }
+
+  const checkCurrentRoleQuery = 'SELECT rol FROM usuarios WHERE id = ?';
   
+  connection.query(checkCurrentRoleQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const currentRol = results[0].rol;
+
+    if (currentRol === nuevoRol) {
+      return res.status(400).json({ message: 'Ese rol ya está asignado al usuario.' });
+    }
+
+    const query = `CALL modificar_usuario_rol(?, ?)`;
+  
+    connection.query(query, [id, nuevoRol], (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: err.sqlMessage });
+      }
+
+      res.status(200).json({ mensaje: `Rol de usuario con ID ${id} actualizado a ${nuevoRol} correctamente.` });
+    });
+  });
+};
+
 
   module.exports = {
     insertarUsuario,
-    obtenerUsuarios,
-    eliminarUsuario
+    obtenerUsuariosTodos,
+    obtenerUsuario,
+    eliminarUsuario,
+    modificarUsuarioDatos,
+    modificarUsuarioRol
   };
