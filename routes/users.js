@@ -1,4 +1,3 @@
-// routes/users.js
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/users');
@@ -6,34 +5,55 @@ const usersController = require('../controllers/users');
 // USUARIOS
 
 // Ruta para obtener usuarios
-router.get('/users', usersController.obtenerUsuariosTodos);
+router.get('/', usersController.obtenerUsuariosTodos);
 
 // Ruta para obtener un usuario por ID
-router.get('/users/:id', usersController.obtenerUsuario);
+router.get('/:id', usersController.obtenerUsuario);
+
+// Ruta para obtener un usuario por parametro
+router.get('/param/:param', usersController.obtenerUsuarioParametro);
 
 // Ruta para obtener la red de un usuario
-router.get('/users/:id/network', usersController.obtenerUsuarioRed);
+router.get('/:id/red', usersController.obtenerUsuarioRed);
+
+// Ruta para obtener las relaciones de un usuario
+router.get('/:id/relaciones', usersController.obtenerUsuarioRelaciones);
+
+// Ruta para obtener los puntos trimestrales de un usuario
+router.get('/:id/puntos_trimestre', usersController.obtenerUsuarioPuntosTrimestre);
+
+// Ruta para obtener el distribuidor de un usuario
+router.get('/:id/distribuidor', usersController.obtenerUsuarioDistribuidor);
+
+// Ruta para obtener el vendedor de un usuario
+router.get('/:id/vendedor', usersController.obtenerUsuarioVendedor);
+
+// Ruta para obtener el historial de un usuario
+router.get('/:id/historial', usersController.obtenerUsuarioHistorial);
 
 // Ruta para insertar un usuario
-router.post('/users', usersController.insertarUsuario);
+router.post('/', usersController.insertarUsuario);
 
 // Ruta para eliminar un usuario
-router.delete('/users/:id', usersController.eliminarUsuario);
+router.delete('/:id', usersController.eliminarUsuario);
 
 // Ruta para modificar un usuario (protegida)
-router.put('/users/:id', usersController.modificarUsuarioDatos);
+router.put('/:id', usersController.modificarUsuarioDatos);
 
 // Ruta para modificar el rol de un usuario por ID (protegida)
-router.put('/users/:id/role', usersController.modificarUsuarioRol);
+router.put('/:id/rol', usersController.modificarUsuarioRol);
 
 // Ruta para modificar el rol de un usuario por ID (protegida)
-router.put('/users/:id/pwd', usersController.modificarUsuarioContrasena);
+router.put('/:id/contrasena', usersController.modificarUsuarioContrasena);
 
 // Ruta para modificar el vendedor de un usuario
-router.put('/users/:id/vendedor', usersController.modificarUsuarioVendedor);
+router.put('/:id/vendedor', usersController.modificarUsuarioVendedor);
 
 // Ruta para modificar el vendedor de un usuario
-router.put('/users/:id/distribuidor', usersController.modificarUsuarioDistribuidor);
+router.put('/:id/distribuidor', usersController.modificarUsuarioDistribuidor);
+
+// Ruta para reiniciar los puntos y nivel de los distribuidores
+router.post('/reiniciar', usersController.reiniciarPuntosNivel);
 
 
 module.exports = router;
