@@ -4,8 +4,8 @@ const { Resend } = require('resend');
 
 const resend = new Resend("re_cUenmb13_7TN9yxDLx5RxjTciBDMadjVe");
 
-//mandar Correo
-const mandarCorreo = async (req, res) => {
+// Enviar Correo
+const enviarCorreo = async (req, res) => {
     try {
       const { to, subject, html } = req.body; 
   
@@ -33,8 +33,7 @@ const mandarCorreo = async (req, res) => {
       console.error(error);
       res.status(500).json({ error: 'Error interno al enviar el correo.' });
     }
-  };
-  
+};
 
 // Obtener todos los usuarios
 const obtenerUsuariosTodos = (req, res) => {
@@ -74,6 +73,32 @@ const obtenerUsuario = (req, res) => {
   });
 };
 
+// Obtener un usuario por parámetro
+const obtenerUsuarioParametro = (req, res) => {
+  const { param } = req.params;
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE nombre = ? OR email = ? OR telefono = ?';
+
+  connection.query(checkQuery, [param, param, param], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results[0].count === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const query = `CALL obtener_usuario_parametro(?)`;
+    
+    connection.query(query, [param], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
 // Obtener la red de un usuario
 const obtenerUsuarioRed = (req, res) => {
   const { id } = req.params;
@@ -90,6 +115,152 @@ const obtenerUsuarioRed = (req, res) => {
     }
 
     const query = `CALL obtener_usuario_red(?)`;
+    
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
+// Obtener las relaciones de un usuario
+const obtenerUsuarioRelaciones = (req, res) => {
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results[0].count === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const query = `CALL obtener_usuario_relaciones(?)`;
+    
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
+// Obtener los puntos trimestrales de un usuario
+const obtenerUsuarioPuntosTrimestre = (req, res) => {
+  const { id } = req.params;
+  const { fecha } = req.body;
+
+  const checkQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const usuarioRol = results[0].rol;
+    if (usuarioRol !== 'distribuidor') {
+      return res.status(400).json({ mensaje: 'Los puntos solo se acumulan para distribuidores.' });
+    }
+
+    const query = `CALL obtener_usuario_puntos_trimestre(?, ?)`;
+    
+    connection.query(query, [id, fecha], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
+// Obtener el distribuidor de un usuario
+const obtenerUsuarioDistribuidor = (req, res) => {
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const usuarioRol = results[0].rol;
+    if (usuarioRol === 'distribuidor') {
+      return res.status(400).json({ mensaje: 'Los distribuidores no tienen distribuidor.' });
+    }
+
+    const query = `CALL obtener_usuario_distribuidor(?)`;
+    
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
+// Obtener el vendedor de un usuario
+const obtenerUsuarioVendedor = (req, res) => {
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const usuarioRol = results[0].rol;
+    if (usuarioRol === 'vendedor' || usuarioRol === 'distribuidor') {
+      return res.status(400).json({ mensaje: 'Solo los promotores tienen vendedor.' });
+    }
+
+    const query = `CALL obtener_usuario_vendedor(?)`;
+    
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.status(201).json(results);
+    });
+  });
+};
+
+// Obtener el historial de un usuario
+const obtenerUsuarioHistorial = (req, res) => {
+  const { id } = req.params;
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+
+  connection.query(checkQuery, [id], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    if (results[0].count === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const query = `CALL obtener_usuario_historial(?)`;
     
     connection.query(query, [id], (err, results) => {
       if (err) {
@@ -183,7 +354,7 @@ const eliminarUsuario = (req, res) => {
   });
   };
   
-  // Modificar los datos de un usuario (actualización parcial)
+// Modificar los datos de un usuario (actualización parcial)
 const modificarUsuarioDatos = (req, res) => {
   const id = req.params.id;
   const { nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion } = req.body;
@@ -365,8 +536,8 @@ const modificarUsuarioDistribuidor = (req, res) => {
 
         // Verificar que el rol sea vendedor
         const usuarioRol = usuarioResults[0].rol;
-        if (usuarioRol !== 'vendedor') {
-            return res.status(400).json({ mensaje: 'El distribuidor solo puede ser asignado a un vendedor.' });
+        if (usuarioRol === 'distribuidor') {
+            return res.status(400).json({ mensaje: 'El distribuidor no puede ser asignado a un distribuidor.' });
         }
 
         // Consulta para verificar que el nuevo distribuidor existe
@@ -395,16 +566,37 @@ const modificarUsuarioDistribuidor = (req, res) => {
     });
 };
 
-  module.exports = {
-    mandarCorreo,
+// Reiniciar los puntos y nivel de los distribuidores
+const reiniciarPuntosNivel = (req, res) => {
+  const query = `CALL reset_usuarios_puntos_nivel()`;
+  
+  connection.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.status(201).json({mensaje:"Los puntos y nivel de los distribuidores han sido reiniciados correctamente"});
+  });
+
+}
+
+
+module.exports = {
+    enviarCorreo,
     insertarUsuario,
     obtenerUsuariosTodos,
     obtenerUsuario,
+    obtenerUsuarioParametro,
     obtenerUsuarioRed,
+    obtenerUsuarioRelaciones,
+    obtenerUsuarioPuntosTrimestre,
+    obtenerUsuarioDistribuidor,
+    obtenerUsuarioVendedor,
+    obtenerUsuarioHistorial,
     eliminarUsuario,
     modificarUsuarioDatos,
     modificarUsuarioRol,
     modificarUsuarioContrasena,
     modificarUsuarioVendedor,
-    modificarUsuarioDistribuidor
-  };
+    modificarUsuarioDistribuidor,
+    reiniciarPuntosNivel
+};

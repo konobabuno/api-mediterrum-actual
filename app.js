@@ -1,19 +1,19 @@
-// app.js
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const userRoutes = require('./routes/users');
+const clientRoutes = require('./routes/clients');
 require('dotenv').config();
 
-// Middleware para parsing de JSON
+// Middleware for parsing JSON
 app.use(express.json());
-
 app.use(cors());
 
-// Rutas
-app.use('/', userRoutes);
+// Routes
+app.use('/usuarios', userRoutes);
+app.use('/clientes', clientRoutes);
 
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000; // Use PORT in uppercase
 app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+  console.log(`Server listening on http://localhost:${port}`);
 });
