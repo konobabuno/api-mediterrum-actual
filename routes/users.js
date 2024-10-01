@@ -4,6 +4,7 @@ const router = express.Router();
 const usersController = require('../controllers/users');
 
 // USUARIOS
+
 // Ruta para obtener usuarios
 router.get('/users', usersController.obtenerUsuariosTodos);
 
@@ -12,7 +13,6 @@ router.get('/users/:id', usersController.obtenerUsuario);
 
 // Ruta para obtener la red de un usuario
 router.get('/users/:id/network', usersController.obtenerUsuarioRed);
-
 
 // Ruta para insertar un usuario
 router.post('/users', usersController.insertarUsuario);
@@ -30,7 +30,10 @@ router.put('/users/:id/role', usersController.modificarUsuarioRol);
 router.put('/users/:id/pwd', usersController.modificarUsuarioContrasena);
 
 // Ruta para modificar el vendedor de un usuario
-router.put('/users/:id/seller', usersController.modificarUsuarioVendedor);
+router.put('/users/:id/vendedor', usersController.modificarUsuarioVendedor);
+
+// Ruta para modificar el vendedor de un usuario
+router.put('/users/:id/distribuidor', usersController.modificarUsuarioDistribuidor);
 
 
 module.exports = router;
