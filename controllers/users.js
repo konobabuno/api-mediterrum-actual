@@ -1,38 +1,39 @@
 const connection = require('../db/db');
 const validator = require('validator');
 const { Resend } = require('resend');
+const xlsx = require('xlsx');
 
 const resend = new Resend("re_cUenmb13_7TN9yxDLx5RxjTciBDMadjVe");
 
-// Enviar Correo
-const enviarCorreo = async (req, res) => {
-    try {
-      const { to, subject, html } = req.body; 
-  
-      // Validaciones básicas
-      if (!validator.isEmail(to)) {
-        return res.status(400).json({ error: 'El correo electrónico es inválido.' });
-      }
-      if (!subject || !html) {
-        return res.status(400).json({ error: 'El asunto y el contenido HTML son requeridos.' });
-      }
-  
-      const { data, error } = await resend.emails.send({
-        from: "Mediterrum <hey@mediterrum.site>",
-        to: [to],
-        subject: subject,
-        html: html,
-      });
-  
-      if (error) {
-        return res.status(400).json({ error });
-      }
-  
-      res.status(200).json({ data });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error interno al enviar el correo.' });
-    }
+// Obtener usuarios y generar un archivo Excel
+const getUsuariosExcel = (req, res) => {
+    const query = 'SELECT id, nombre, email, telefono, locacion, rol, puntos_total, nivel FROM usuarios';
+
+    connection.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ mensaje: 'Error al obtener los datos', error: err.sqlMessage });
+        }
+
+        // Crear un nuevo libro de trabajo y hoja
+        const workbook = xlsx.utils.book_new();
+        const worksheet = xlsx.utils.json_to_sheet(results);
+
+        // Agregar la hoja al libro
+        xlsx.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
+
+        // Generar el archivo Excel
+        const excelFileName = `usuarios_${new Date().toISOString().split('T')[0]}.xlsx`;
+        xlsx.writeFile(workbook, excelFileName);
+
+        // Enviar el archivo como respuesta
+        res.download(excelFileName, (err) => {
+            if (err) {
+                console.error('Error al descargar el archivo', err);
+            }
+            // Opcional: Eliminar el archivo después de enviarlo
+            fs.unlinkSync(excelFileName);
+        });
+    });
 };
 
 // Obtener todos los usuarios
@@ -302,8 +303,8 @@ const insertarUsuario = async (req, res) => {
             }
 
             // Envío de correo electrónico
-            const subject = 'Por favor, establece tu contraseña';
-            const html = `Por favor, entra a este <a href="www.mediterrum.site">link</a> para agregar tu contraseña.`; // Ajusta el enlace según tu aplicación.
+            const subject = 'Bienvenido a Mediterrum';
+            const html = `Bienvenido a Mediterrum, gracias por ser parte de nuestra gran Familia.`;
 
             try {
                 const { data, error } = await resend.emails.send({
@@ -586,7 +587,7 @@ const reiniciarPuntosNivel = (req, res) => {
 
 
 module.exports = {
-    enviarCorreo,
+    getUsuariosExcel,
     insertarUsuario,
     obtenerUsuariosTodos,
     obtenerUsuario,

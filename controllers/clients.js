@@ -1,6 +1,9 @@
 const connection = require('../db/db');
 const validator = require('validator');
 
+const xlsx = require('xlsx');
+const fs = require('fs');
+
 // Insertar un cliente
 const insertarCliente = async (req, res) => {
     const { usuario, nombre, email, telefono, locacion, intereses } = req.body;
@@ -239,6 +242,38 @@ const modificarCliente = (req, res) => {
   });
 };
 
+// Obtener clientes y generar un archivo Excel
+const getClientesExcel = (req, res) => {
+  const query = 'SELECT id, usuario, nombre, email, telefono, locacion, intereses FROM clientes';
+
+  connection.query(query, (err, results) => {
+      if (err) {
+          return res.status(500).json({ mensaje: 'Error al obtener los datos', error: err.sqlMessage });
+      }
+
+      // Crear un nuevo libro de trabajo y hoja
+      const workbook = xlsx.utils.book_new();
+      const worksheet = xlsx.utils.json_to_sheet(results);
+
+      // Agregar la hoja al libro
+      xlsx.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+
+      // Generar el archivo Excel
+      const excelFileName = `clientes_${new Date().toISOString().split('T')[0]}.xlsx`;
+      xlsx.writeFile(workbook, excelFileName);
+
+      // Enviar el archivo como respuesta
+      res.download(excelFileName, (err) => {
+          if (err) {
+              console.error('Error al descargar el archivo', err);
+          }
+          // Eliminar el archivo después de enviarlo
+          fs.unlinkSync(excelFileName);
+      });
+  });
+};
+
+
 
 module.exports = {
     insertarCliente,
@@ -247,6 +282,7 @@ module.exports = {
     obtenerClienteParametro,
     obtenerClienteUsuario,
     eliminarCliente,
-    modificarCliente
+    modificarCliente,
+    getClientesExcel
 };
 

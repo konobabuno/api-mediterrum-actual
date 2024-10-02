@@ -10,6 +10,9 @@ router.post('/', clientsController.insertarCliente);
 // Ruta para obtener todos los clientes
 router.get('/', clientsController.obtenerClientesTodos);
 
+// Ruta para obtener clientes en Excel
+router.get('/excel', clientsController.getClientesExcel);
+
 // Ruta para obtener un cliente por ID
 router.get('/:id', clientsController.obtenerCliente);
 

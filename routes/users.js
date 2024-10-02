@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/users');
+const fs = require('fs'); 
 
 // USUARIOS
 
 // Ruta para obtener usuarios
 router.get('/', usersController.obtenerUsuariosTodos);
+
+// Ruta para obtener el archivo Excel con los usuarios
+router.get('/excel', usersController.getUsuariosExcel);
 
 // Ruta para obtener un usuario por ID
 router.get('/:id', usersController.obtenerUsuario);
