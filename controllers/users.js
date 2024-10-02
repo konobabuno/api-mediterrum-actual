@@ -358,27 +358,32 @@ const eliminarUsuario = (req, res) => {
 const modificarUsuarioDatos = (req, res) => {
     const id = req.params.id;
     const { nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion } = req.body;
-  
+
     if (isNaN(id)) {
         return res.status(400).json({ mensaje: 'ID inválido.' });
     }
-  
+
+    // Validar que todos los campos estén presentes
+    if (nuevoNombre === undefined || nuevoEmail === undefined || nuevoTelefono === undefined || nuevaLocacion === undefined) {
+        return res.status(400).json({ mensaje: 'Todos los campos (nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion) son requeridos.' });
+    }
+
     const query = `CALL modificar_usuario_datos(?, ?, ?, ?, ?)`;
     const values = [
         id,
-        nuevoNombre !== undefined ? nuevoNombre : null,  // Mantiene el valor actual si no se proporciona
-        nuevoEmail !== undefined ? nuevoEmail : null,    // Mantiene el valor actual si no se proporciona
-        nuevoTelefono !== undefined ? nuevoTelefono : null,// Mantiene el valor actual si no se proporciona
-        nuevaLocacion !== undefined ? nuevaLocacion : null// Mantiene el valor actual si no se proporciona
+        nuevoNombre,  // Se usa el nuevoNombre tal cual
+        nuevoEmail,   // Se usa el nuevoEmail tal cual
+        nuevoTelefono,// Se usa el nuevoTelefono tal cual
+        nuevaLocacion // Se usa la nuevaLocacion tal cual
     ];
-  
+
     connection.query(query, values, (err, results) => {
         if (err) {
             return res.status(500).json({ mensaje: err.sqlMessage });
         }
         res.status(200).json({ mensaje: `Datos de usuario con ID ${id} actualizados correctamente` });
     });
-  };
+};
 
 // Modificar el rol de un usuario
 const modificarUsuarioRol = (req, res) => {
