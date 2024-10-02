@@ -37,7 +37,7 @@ router.post('/', usersController.insertarUsuario);
 // Ruta para eliminar un usuario
 router.delete('/:id', usersController.eliminarUsuario);
 
-// Ruta para modificar un usuario (protegida)
+// Ruta para modificar un usuario
 router.put('/:id', usersController.modificarUsuarioDatos);
 
 // Ruta para modificar el rol de un usuario por ID (protegida)

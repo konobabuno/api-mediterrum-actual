@@ -183,12 +183,70 @@ const eliminarCliente = (req, res) => {
   });
 };
 
+// Modificar un cliente
+const modificarCliente = (req, res) => {
+  const cliente_id = req.params.id;
+  const { nombre, email, telefono, locacion, intereses } = req.body;
+
+  // Validar email
+  if (!validator.isEmail(email)) {
+      return res.status(400).json({ mensaje: 'El formato del email no es válido' });
+  }
+
+  // Validar teléfono
+  if (!validator.isMobilePhone(telefono, 'any', { strictMode: false })) {
+      return res.status(400).json({ mensaje: 'El número de celular no es válido' });
+  }
+
+  // Verificar que el cliente existe
+  const checkClienteQuery = 'SELECT COUNT(*) as count FROM clientes WHERE id = ?';
+  
+  connection.query(checkClienteQuery, [cliente_id], (err, results) => {
+      if (err) {
+          return res.status(500).send(err);
+      }
+
+      if (results[0].count === 0) {
+          return res.status(404).json({ mensaje: 'El cliente no existe' });
+      }
+
+      // Verificar que el email y el teléfono no estén en uso por otro cliente
+      const checkUniqueQuery = 'SELECT COUNT(*) as count FROM clientes WHERE (email = ? OR telefono = ?) AND id != ?';
+      
+      connection.query(checkUniqueQuery, [email, telefono, cliente_id], (err, results) => {
+          if (err) {
+              return res.status(500).send(err);
+          }
+
+          if (results[0].count > 0) {
+              return res.status(400).json({ mensaje: 'El email o teléfono ya están en uso por otro cliente' });
+          }
+
+          // Llamar al procedimiento almacenado para modificar el cliente
+          const query = `CALL modificar_cliente(?, ?, ?, ?, ?, ?)`;
+          const values = [cliente_id, nombre, email, telefono, locacion, intereses];
+
+          connection.query(query, values, (err, results) => {
+              if (err) {
+                  if (err.sqlState === '45000') {
+                      return res.status(400).json({ mensaje: err.sqlMessage });
+                  }
+                  return res.status(500).send(err);
+              }
+              res.status(200).json({ mensaje: `Cliente con ID ${cliente_id} modificado correctamente` });
+          });
+      });
+  });
+};
+
+
 module.exports = {
     insertarCliente,
     obtenerClientesTodos,
     obtenerCliente,
     obtenerClienteParametro,
     obtenerClienteUsuario,
-    eliminarCliente
+    eliminarCliente,
+    modificarCliente
 };
 
