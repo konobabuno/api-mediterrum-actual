@@ -5,7 +5,6 @@ const validator = require('validator');
 const agregarProductoCarrito = async (req, res) => {
     const { usuario_id, producto_sku, cantidad } = req.body;
 
-    // Validar que la cantidad sea un número positivo
     if (typeof cantidad !== 'number' || cantidad <= 0) {
         return res.status(400).json({ mensaje: 'La cantidad debe ser un número positivo.' });
     }
@@ -35,12 +34,10 @@ const obtenerProductosEnCarrito = async (req, res) => {
             return res.status(500).send(err);
         }
 
-        // Verifica si el carrito está vacío
         if (results[0].length === 0) {
             return res.status(404).json({ mensaje: 'El carrito está vacío o el usuario no existe.' });
         }
 
-        // Devuelve la lista de productos en el carrito
         res.status(200).json(results[0]);
     });
 };
@@ -54,13 +51,11 @@ const modificarCantidadProductoCarrito = async (req, res) => {
     connection.query(query, [usuario_id, producto_sku, nueva_cantidad], (err, results) => {
         if (err) {
             if (err.sqlState === '45000') {
-                // Manejar mensajes de error específicos
                 return res.status(400).json({ mensaje: err.sqlMessage });
             }
             return res.status(500).send(err);
         }
 
-        // Si la modificación fue exitosa
         res.status(200).json({ mensaje: 'Cantidad modificada correctamente' });
     });
 };
@@ -76,7 +71,6 @@ const eliminarProductoCarrito = async (req, res) => {
             return res.status(500).send(err);
         }
 
-        // Si la eliminación fue exitosa
         res.status(200).json({ mensaje: 'Producto eliminado del carrito correctamente' });
     });
 };

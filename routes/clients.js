@@ -28,4 +28,7 @@ router.delete('/:id', clientsController.eliminarCliente);
 //Ruta para modificar cliente.
 router.put('/:id', clientsController.modificarCliente);
 
+// Ruta para modificar el usuario de un cliente
+router.put('/usuario/:id', clientsController.modificarClienteUsuario);
+
 module.exports = router;

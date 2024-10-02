@@ -13,5 +13,4 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Exportamos directamente el pool sin promesas
 module.exports = pool;

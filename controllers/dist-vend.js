@@ -9,7 +9,11 @@ const obtenerListaDistribuidores = (req, res) => {
             return res.status(500).send(err);
         }
 
-        res.status(200).json(results[0]); // Devuelve la lista de distribuidores
+        if (results[0].length === 0) {
+            return res.status(404).send({ message: 'No distributors found' });
+        }
+
+        res.status(200).json(results[0]); 
     });
 };
 
@@ -22,7 +26,7 @@ const obtenerListaVendedores = (req, res) => {
             return res.status(500).send(err);
         }
 
-        res.status(200).json(results[0]); // Devuelve la lista de vendedores
+        res.status(200).json(results[0]); 
     });
 };
 
