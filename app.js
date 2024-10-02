@@ -6,6 +6,7 @@ const clientRoutes = require('./routes/clients');
 const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const listasRoutes = require('./routes/listas');
+const reportRoutes = require('./routes/report');
 require('dotenv').config();
 
 // Middleware for parsing JSON
@@ -22,6 +23,7 @@ app.use('/clientes', clientRoutes);
 app.use('/productos', productRoutes);
 app.use('/carrito', cartRoutes);
 app.use('/listas', listasRoutes);
+app.use('/reporte', reportRoutes);
 
 const port = process.env.PORT || 3000; // Use PORT in uppercase
 app.listen(port, () => {

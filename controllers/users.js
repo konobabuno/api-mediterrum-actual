@@ -356,29 +356,29 @@ const eliminarUsuario = (req, res) => {
   
 // Modificar los datos de un usuario (actualización parcial)
 const modificarUsuarioDatos = (req, res) => {
-  const id = req.params.id;
-  const { nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion } = req.body;
-
-  if (isNaN(id)) {
-      return res.status(400).json({ mensaje: 'ID inválido.' });
-  }
-
-  const query = `CALL modificar_usuario_datos(?, ?, ?, ?, ?)`;
-  const values = [
-      id,
-      nuevoNombre || null || "",
-      nuevoEmail || null || "",
-      nuevoTelefono || null || "",
-      nuevaLocacion || null || ""
-  ];
-
-  connection.query(query, values, (err, results) => {
-      if (err) {
-          return res.status(500).json({mensaje : err.sqlMessage});
-      }
-      res.status(200).json({ mensaje: `Datos de usuario con ID ${id} actualizados correctamente` });
-  });
-};
+    const id = req.params.id;
+    const { nuevoNombre, nuevoEmail, nuevoTelefono, nuevaLocacion } = req.body;
+  
+    if (isNaN(id)) {
+        return res.status(400).json({ mensaje: 'ID inválido.' });
+    }
+  
+    const query = `CALL modificar_usuario_datos(?, ?, ?, ?, ?)`;
+    const values = [
+        id,
+        nuevoNombre !== undefined ? nuevoNombre : null,  // Mantiene el valor actual si no se proporciona
+        nuevoEmail !== undefined ? nuevoEmail : null,    // Mantiene el valor actual si no se proporciona
+        nuevoTelefono !== undefined ? nuevoTelefono : null,// Mantiene el valor actual si no se proporciona
+        nuevaLocacion !== undefined ? nuevaLocacion : null// Mantiene el valor actual si no se proporciona
+    ];
+  
+    connection.query(query, values, (err, results) => {
+        if (err) {
+            return res.status(500).json({ mensaje: err.sqlMessage });
+        }
+        res.status(200).json({ mensaje: `Datos de usuario con ID ${id} actualizados correctamente` });
+    });
+  };
 
 // Modificar el rol de un usuario
 const modificarUsuarioRol = (req, res) => {
