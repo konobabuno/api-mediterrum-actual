@@ -1,9 +1,22 @@
 const connection = require('../db/db');
-const validator = require('validator');
 
 // Insertar un producto
 const insertarProducto = async (req, res) => {
-    const { sku, nombre_producto, costo_total, costo_no_iva, img, descripcion, descuento, puntos_producto, cantidad_inventario } = req.body;
+    const productoData = JSON.parse(req.body.producto); // Parse the JSON string
+    const imagePath = req.file ? `./assets/${req.file.filename}` : null; // Path to the uploaded image
+
+    
+    if (null === null) {
+        return res.status(400).json({ mensaje: 'Datos del producto no encontrados' });
+    } else {
+        return res.status(200).json({ mensaje: 'Datos del producto encontrados' });
+
+    }
+    console.log(imagePath);
+
+    const { sku, nombre_producto, costo_total, costo_no_iva, descripcion, descuento, puntos_producto, cantidad_inventario } = productoData;
+
+    const img = imagePath;
 
     if (!sku || !nombre_producto || !costo_total || !costo_no_iva || !cantidad_inventario) {
         return res.status(400).json({ mensaje: 'Campos obligatorios faltantes' });

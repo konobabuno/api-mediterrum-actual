@@ -1,6 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const productsController = require('../controllers/products.js');
+const multer = require('multer');
+
+// Configure multer storage
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../../../frontend/crud_frontend/assets'); // Adjust as needed
+        cb(null, uploadPath);
+        // cb(null, './assets');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`); // Use a unique filename
+    }
+});
+
+// Initialize multer
+const upload = multer({ storage });
 
 // Ruta para obtener todos los productos
 router.get('/', productsController.obtenerProductosTodos);
@@ -9,7 +25,7 @@ router.get('/', productsController.obtenerProductosTodos);
 router.get('/:sku', productsController.obtenerProductoPorSKU);
 
 // Ruta para insertar un producto
-router.post('/', productsController.insertarProducto);
+router.post('/', upload.single('image'), productsController.insertarProducto);
 
 // Ruta para modificar los datos de un producto
 router.put('/:sku', productsController.modificarProducto);
