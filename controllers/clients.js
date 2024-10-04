@@ -242,6 +242,50 @@ const modificarCliente = (req, res) => {
   });
 };
 
+// Modificar el usuario de un cliente
+const modificarClienteUsuario = (req, res) => {
+  const cliente_id = req.params.id;
+  const { usuario } = req.body;
+
+  const checkClienteQuery = 'SELECT COUNT(*) as count FROM clientes WHERE id = ?';
+  
+  connection.query(checkClienteQuery, [cliente_id], (err, results) => {
+      if (err) {
+          return res.status(500).send(err);
+      }
+      
+      if (results[0].count === 0) {
+          return res.status(404).json({ mensaje: 'El cliente no existe' });
+      }
+
+      const checkUsuarioQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+      
+      connection.query(checkUsuarioQuery, [usuario], (err, results) => {
+          if (err) {
+              return res.status(500).send(err);
+          }
+
+          if (results[0].count === 0) {
+              return res.status(404).json({ mensaje: 'El usuario no existe' });
+          }
+
+          const query = `CALL modificar_cliente_usuario(?, ?)`;
+          const values = [cliente_id, usuario]; // Pass the usuario directly
+
+          connection.query(query, values, (err, results) => {
+              if (err) {
+                  if (err.sqlState === '45000') {
+                      return res.status(400).json({ mensaje: err.sqlMessage });
+                  }
+                  return res.status(500).send(err);
+              }
+              res.status(200).json({ mensaje: `Usuario del cliente con ID ${cliente_id} modificado correctamente` }); // Use backticks for interpolation
+          });
+      });
+  });
+};
+
+
 // Obtener clientes y generar un archivo Excel
 const getClientesExcel = (req, res) => {
   const query = 'SELECT id, usuario, nombre, email, telefono, locacion, intereses FROM clientes';
@@ -283,6 +327,7 @@ module.exports = {
     obtenerClienteUsuario,
     eliminarCliente,
     modificarCliente,
+    modificarClienteUsuario,
     getClientesExcel
 };
 

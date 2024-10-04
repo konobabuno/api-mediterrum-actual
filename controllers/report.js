@@ -10,7 +10,6 @@ function obtenerTopNTrimestre(req, res) {
         return res.status(400).send('La fecha y el top N son requeridos.');
     }
 
-    // Ejecutar el procedimiento almacenado
     const query = `CALL obtener_topN_trimestre(?, ?)`;
 
     pool.query(query, [fecha, topN], (err, results) => {
@@ -42,7 +41,7 @@ const obtenerRedReporteTrimestral = (req, res) => {
             return res.status(500).json({ error: err.message });
         }
 
-        res.status(200).json(results[0]); // Devuelve el reporte trimestral
+        res.status(200).json(results[0]); 
     });
 };
 
