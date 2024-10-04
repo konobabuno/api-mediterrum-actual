@@ -4,7 +4,7 @@ const connection = require('../db/db');
 const pool = require('../db/db');
 
 function obtenerTopNTrimestre(req, res) {
-    const { fecha, topN } = req.body;
+    const { fecha, topN } = req.params;
 
     if (!fecha || !topN) {
         return res.status(400).send('La fecha y el top N son requeridos.');
@@ -19,7 +19,6 @@ function obtenerTopNTrimestre(req, res) {
             return res.status(500).send('Error en el servidor al ejecutar el procedimiento.');
         }
 
-        // `results[0]` contiene las filas devueltas por el procedimiento almacenado
         if (results.length > 0 && results[0].length > 0) {
             return res.status(200).json(results[0]);
         } else {
@@ -27,6 +26,7 @@ function obtenerTopNTrimestre(req, res) {
         }
     });
 }
+
 
 // Obtener reporte trimestral por red
 const obtenerRedReporteTrimestral = (req, res) => {
