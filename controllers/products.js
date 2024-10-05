@@ -114,9 +114,6 @@ const modificarProducto = (req, res) => {
             return res.status(500).send(err);
         }
 
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ mensaje: 'Producto no encontrado.' });
-        }
 
         res.status(200).json({ mensaje: 'Producto modificado correctamente.' });
     });
