@@ -21,14 +21,20 @@ const obtenerListaDistribuidores = (req, res) => {
 
 // Obtener la lista de vendedores
 const obtenerListaVendedores = (req, res) => {
-    const query = 'CALL obtener_lista_vendedores()';
+    const query = 'SELECT id, nombre FROM usuarios WHERE rol = "vendedor"';
 
     connection.query(query, (err, results) => {
         if (err) {
             return res.status(500).send(err);
         }
 
-        res.status(200).json(results[0]); 
+        // Si no hay vendedores, retorna el mensaje adecuado
+        if (results.length === 0) {
+            return res.status(404).send({ message: 'No sellers found' });
+        }
+
+        // Retorna todos los vendedores en el arreglo 'results'
+        res.status(200).json(results); 
     });
 };
 
