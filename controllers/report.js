@@ -29,7 +29,7 @@ function obtenerTopNTrimestre(req, res) {
 
 // Obtener reporte trimestral por red
 const obtenerRedReporteTrimestral = (req, res) => {
-    const { fecha, usuario_id } = req.query;
+    const { fecha, usuario_id } = req.params;  // Se toman de los params
 
     if (!fecha || !usuario_id) {
         return res.status(400).json({ message: 'Fecha y usuario_id son requeridos' });
@@ -41,10 +41,9 @@ const obtenerRedReporteTrimestral = (req, res) => {
             return res.status(500).json({ error: err.message });
         }
 
-        res.status(200).json(results[0]); 
+        res.status(200).json(results[0]);
     });
 };
-
 
 module.exports = {
     obtenerRedReporteTrimestral,

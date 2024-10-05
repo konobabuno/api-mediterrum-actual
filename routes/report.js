@@ -6,6 +6,6 @@ const reportController = require('../controllers/report');
 router.get('/top-usuarios/:fecha/:topN', reportController.obtenerTopNTrimestre);
 
 // Ruta para obtener el reporte trimestral por red
-router.get('/reporte-trimestral-red', reportController.obtenerRedReporteTrimestral);
+router.get('/reporte-trimestral-red/:fecha/:usuario_id', reportController.obtenerRedReporteTrimestral);
 
 module.exports = router;
