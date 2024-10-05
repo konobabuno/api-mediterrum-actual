@@ -329,31 +329,68 @@ const insertarUsuario = async (req, res) => {
     });
 };
 
-// Eliminar un usuario
 const eliminarUsuario = (req, res) => {
-  const { id } = req.params;
-
-  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+    const { id } = req.params;
   
-  connection.query(checkQuery, [id], (err, results) => {
-    if (err) {
-      return res.status(500).send(err);
-    }
-
-    if (results[0].count === 0) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    }
+    const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
   
-    const query = `CALL eliminar_usuario(?)`;
-
-    connection.query(query, [id], (err, results) => {
+    connection.query(checkQuery, [id], (err, results) => {
       if (err) {
         return res.status(500).send(err);
       }
-      return res.status(200).json({mensaje: "Usuario eliminado correctamente"});
+  
+      if (results[0].count === 0) {
+        return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+      }
+  
+      // Verificar el carrito
+      const carritoQuery = 'SELECT id FROM carrito WHERE usuario = ?';
+      const historialQuery = 'SELECT id FROM historial WHERE usuario = ?';
+  
+      connection.query(carritoQuery, [id], (err, carritoResults) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+  
+        // Eliminar carritos si existen
+        carritoResults.forEach(carrito => {
+          const deleteCarritoQuery = 'DELETE FROM carrito WHERE id = ?';
+          connection.query(deleteCarritoQuery, [carrito.id], (err) => {
+            if (err) {
+              return res.status(500).send(err);
+            }
+          });
+        });
+  
+        // Verificar historial
+        connection.query(historialQuery, [id], (err, historialResults) => {
+          if (err) {
+            return res.status(500).send(err);
+          }
+  
+          // Eliminar historiales si existen
+          historialResults.forEach(historial => {
+            const deleteHistorialQuery = 'DELETE FROM historial WHERE id = ?';
+            connection.query(deleteHistorialQuery, [historial.id], (err) => {
+              if (err) {
+                return res.status(500).send(err);
+              }
+            });
+          });
+  
+          // Finalmente, llamar al procedimiento para eliminar el usuario
+          const query = `CALL eliminar_usuario(?)`;
+          connection.query(query, [id], (err) => {
+            if (err) {
+              return res.status(500).send(err);
+            }
+            return res.status(200).json({ mensaje: "Usuario eliminado correctamente" });
+          });
+        });
+      });
     });
-  });
   };
+  
   
 // Modificar los datos de un usuario (actualización parcial)
 const modificarUsuarioDatos = (req, res) => {
