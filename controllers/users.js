@@ -388,41 +388,43 @@ const modificarUsuarioDatos = (req, res) => {
 
 // Modificar el rol de un usuario
 const modificarUsuarioRol = (req, res) => {
-  const id = req.params.id;
-  const { nuevoRol } = req.body;
-
-  if (isNaN(id) || !['vendedor', 'promotor', 'distribuidor'].includes(nuevoRol)) {
-    return res.status(400).json({ mensaje: 'ID inválido o rol no válido.' });
-  }
-
-  const checkCurrentRoleQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+    const id = req.params.id;
+    const { nuevoRol } = req.body;
   
-  connection.query(checkCurrentRoleQuery, [id], (err, results) => {
-    if (err) {
-      return res.status(500).send(err);
+    if (isNaN(id) || !['vendedor', 'promotor', 'distribuidor'].includes(nuevoRol)) {
+      return res.status(400).json({ mensaje: 'ID inválido o rol no válido.' });
     }
-
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    const currentRol = results[0].rol;
-
-    if (currentRol === nuevoRol) {
-      return res.status(400).json({ message: 'Ese rol ya está asignado al usuario.' });
-    }
-
-    const query = `CALL modificar_usuario_rol(?, ?)`;
   
-    connection.query(query, [id, nuevoRol], (err, results) => {
+    const checkCurrentRoleQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+    
+    connection.query(checkCurrentRoleQuery, [id], (err, results) => {
       if (err) {
-        return res.status(500).json({ message: err.sqlMessage });
+        return res.status(500).send(err);
       }
-
-      res.status(200).json({ mensaje: `Rol de usuario con ID ${id} actualizado a ${nuevoRol} correctamente.` });
+  
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
+  
+      const currentRol = results[0].rol;
+  
+      // Si el rol actual es el mismo que el nuevo rol, simplemente no hacemos nada
+      if (currentRol === nuevoRol) {
+        return res.status(200).json({ mensaje: 'El usuario ya tiene ese rol asignado.' });
+      }
+  
+      const query = `CALL modificar_usuario_rol(?, ?)`;
+    
+      connection.query(query, [id, nuevoRol], (err, results) => {
+        if (err) {
+          return res.status(500).json({ message: err.sqlMessage });
+        }
+  
+        res.status(200).json({ mensaje: `Rol de usuario con ID ${id} actualizado a ${nuevoRol} correctamente.` });
+      });
     });
-  });
-};
+  };
+  
 
 // Modificar la contraseña de un usuario
 const modificarUsuarioContrasena = (req, res) => {
