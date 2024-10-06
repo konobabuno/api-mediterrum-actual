@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const productsController = require('../controllers/products.js');
+const verificarToken = require('../middleware/auth');
+
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para obtener todos los productos
 router.get('/', productsController.obtenerProductosTodos);

@@ -1,9 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const verificarToken = require('../middleware/auth');
 const usersController = require('../controllers/users');
 const fs = require('fs'); 
 
 // USUARIOS
+
+// Ruta para login.
+router.post('/login', usersController.loginUsuario);
+
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para obtener usuarios
 router.get('/', usersController.obtenerUsuariosTodos);

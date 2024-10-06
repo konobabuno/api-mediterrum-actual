@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/report');
+const verificarToken = require('../middleware/auth');
+
+
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para obtener el top N de usuarios de un trimestre
 router.get('/top-usuarios/:fecha/:topN', reportController.obtenerTopNTrimestre);

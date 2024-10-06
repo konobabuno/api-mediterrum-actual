@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const clientsController = require('../controllers/clients');
+const verificarToken = require('../middleware/auth');
+
 
 // CLIENTES
+
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para insertar un cliente
 router.post('/', clientsController.insertarCliente);

@@ -25,7 +25,7 @@ app.use('/productos', productRoutes);
 app.use('/carrito', cartRoutes);
 app.use('/listas', listsRoutes);
 app.use('/reporte', reportRoutes);
-app.use('/ventas', salesRoutes)
+app.use('/ventas', salesRoutes);
 
 const port = process.env.PORT || 3000; 
 app.listen(port, () => {

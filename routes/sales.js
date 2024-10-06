@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const salesController = require('../controllers/sales');
+const verificarToken = require('../middleware/auth');
 
 // VENTAS
 
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para realizar una venta
 router.post('/', salesController.realizarVenta);

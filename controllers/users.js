@@ -2,8 +2,38 @@ const connection = require('../db/db');
 const validator = require('validator');
 const { Resend } = require('resend');
 const xlsx = require('xlsx');
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
-const resend = new Resend("re_cUenmb13_7TN9yxDLx5RxjTciBDMadjVe");
+
+const resend = new Resend(process.env.MAIL_KEY);
+
+
+const loginUsuario = (req, res) => {
+  const { email, contrasena } = req.body;
+
+  const query = 'SELECT * FROM usuarios WHERE email = ? AND contrasena = ?';
+
+  connection.query(query, [email, contrasena], (err, results) => {
+      if (err) {
+          return res.status(500).send(err);
+      }
+
+      if (results.length === 0) {
+          return res.status(401).json({ mensaje: 'Correo o contraseña incorrectos.' });
+      }
+
+      const usuario = results[0];
+
+      // Generar el token JWT
+      const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.SECRET_KEY, { expiresIn: '8h' });
+
+      // Enviar el token y el id del usuario en la respuesta
+      res.status(200).json({ mensaje: 'Login exitoso', token, id: usuario.id });
+  });
+};
+
+
 
 // Obtener usuarios y generar un archivo Excel
 const getUsuariosExcel = (req, res) => {
@@ -624,8 +654,8 @@ const reiniciarPuntosNivel = (req, res) => {
 
 }
 
-
 module.exports = {
+    loginUsuario,
     getUsuariosExcel,
     insertarUsuario,
     obtenerUsuariosTodos,

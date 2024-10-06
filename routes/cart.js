@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cart.js');
+const verificarToken = require('../middleware/auth');
+
+// Verificar Token
+router.use(verificarToken);
 
 // Ruta para agregar un producto al carrito
 router.post('/agregar', cartController.agregarProductoCarrito);
