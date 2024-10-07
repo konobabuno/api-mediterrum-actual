@@ -4,7 +4,7 @@ const { Resend } = require('resend');
 const xlsx = require('xlsx');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-
+const crypto = require('crypto');
 
 const resend = new Resend(process.env.MAIL_KEY);
 
@@ -675,6 +675,54 @@ const reiniciarPuntosNivel = (req, res) => {
 
 }
 
+// Reestablecer la contraseña de un usuario
+const reestablecerUsuarioContrasena = async (req, res) => {
+  const { email } = req.body;
+
+  if (!validator.isEmail(email)) {
+      return res.status(400).json({ mensaje: 'El formato del email no es válido' });
+  }
+
+  const checkQuery = 'SELECT id FROM usuarios WHERE email = ?';
+  connection.query(checkQuery, [email], async (err, results) => {
+      if (err) {
+          return res.status(500).send(err);
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+      }
+
+      const usuarioId = results[0].id;
+      const rol = results[0].rol;
+      const token = jwt.sign({ id: usuarioId, rol: rol }, process.env.SECRET_KEY, { expiresIn: '8h' }); // You can adjust the expiry time as needed
+
+      const subject = 'Restablecer contraseña';
+      const html = `
+          <p>Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el enlace de abajo para restablecerla:</p>
+          <a href="http://localhost:3010/password.html?token=${token}&id=${usuarioId}">Restablecer contraseña</a>
+          <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
+      `;
+
+      try {
+          const { data, error } = await resend.emails.send({
+              from: "Mediterrum <hey@mediterrum.site>",
+              to: [email],
+              subject: subject,
+              html: html,
+          });
+
+          if (error) {
+              return res.status(500).json({ mensaje: 'Error al enviar el correo de restablecimiento de contraseña.' });
+          }
+          res.status(200).json({ mensaje: 'Correo de restablecimiento de contraseña enviado.' });
+      } catch (emailError) {
+          return res.status(500).json({ mensaje: 'Error al enviar el correo de restablecimiento de contraseña.' });
+      }
+  });
+};
+
+
 module.exports = {
     loginUsuario,
     getUsuariosExcel,
@@ -694,5 +742,6 @@ module.exports = {
     modificarUsuarioContrasena,
     modificarUsuarioVendedor,
     modificarUsuarioDistribuidor,
-    reiniciarPuntosNivel
+    reiniciarPuntosNivel,
+    reestablecerUsuarioContrasena
 };

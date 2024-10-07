@@ -9,6 +9,9 @@ const fs = require('fs');
 // Ruta para login.
 router.post('/login', usersController.loginUsuario);
 
+// Ruta para reestablecer la contraseña de un usuario
+router.put('/reestablecer', usersController.reestablecerUsuarioContrasena);
+
 // Verificar Token
 router.use(verificarToken);
 
