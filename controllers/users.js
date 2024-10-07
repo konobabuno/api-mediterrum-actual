@@ -354,7 +354,7 @@ const insertarUsuario = async (req, res) => {
         const html = `Bienvenido a Mediterrum, gracias por ser parte de nuestra gran Familia.
         <br>
         Por favor, ingresa o cambia tu contraseña en este link: 
-        <a href="http://localhost:3011/password.html?token=${token}&id=${usuarioId}">
+        <a href="http://localhost:3010/password.html?token=${token}&id=${usuarioId}">
         Cambiar o ingresar contraseña
         </a>`;
 
