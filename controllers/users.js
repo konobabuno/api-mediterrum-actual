@@ -302,61 +302,84 @@ const obtenerUsuarioHistorial = (req, res) => {
   });
 };
 
-// Insertar un usuario
 const insertarUsuario = async (req, res) => {
-    const { nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador } = req.body;
+  const { nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador } = req.body;
 
-    if (!validator.isEmail(email)) {
-        return res.status(400).json({ mensaje: 'El formato del email no es válido' });
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ mensaje: 'El formato del email no es válido' });
+  }
+
+  if (!validator.isMobilePhone(telefono, 'any', { strictMode: false })) {
+    return res.status(400).json({ mensaje: 'El número de celular no es válido' });
+  }
+
+  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE email = ? OR telefono = ?';
+
+  connection.query(checkQuery, [email, telefono], (err, results) => {
+    if (err) {
+      return res.status(500).send(err);
     }
 
-    if (!validator.isMobilePhone(telefono, 'any', { strictMode: false })) {
-        return res.status(400).json({ mensaje: 'El número de celular no es válido' });
+    if (results[0].count > 0) {
+      return res.status(400).json({ mensaje: 'El email o el número de celular ya está en uso' });
     }
 
-    const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE email = ? OR telefono = ?';
+    const insertQuery = `CALL insertar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    connection.query(checkQuery, [email, telefono], (err, results) => {
+    connection.query(insertQuery, [nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador], (err) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+
+      // Consulta para obtener el ID del usuario recién insertado por su email
+      const getUserIdQuery = 'SELECT id FROM usuarios WHERE email = ?';
+
+      connection.query(getUserIdQuery, [email], async (err, results) => {
         if (err) {
-            return res.status(500).send(err);
+          return res.status(500).send(err);
         }
 
-        if (results[0].count > 0) {
-            return res.status(400).json({ mensaje: 'El email o el número de celular ya está en uso' });
+        if (results.length === 0) {
+          return res.status(404).json({ mensaje: 'Usuario no encontrado después de la inserción' });
         }
 
-        const query = `CALL insertar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const usuarioId = results[0].id;
+        console.log(usuarioId);
 
-        connection.query(query, [nombre, email, telefono, locacion, rol, puntos_total, nivel, id_distribuidor, id_vendedor, contrasena, id_creador], async (err, results) => {
-            if (err) {
-                return res.status(500).send(err);
-            }
+        // Generar el token JWT
+        const token = jwt.sign({ id: usuarioId, rol: rol }, process.env.SECRET_KEY, { expiresIn: '8h' });
 
-            // Envío de correo electrónico
-            const subject = 'Bienvenido a Mediterrum';
-            const html = `Bienvenido a Mediterrum, gracias por ser parte de nuestra gran Familia.`;
+        // Envío de correo electrónico
+        const subject = 'Bienvenido a Mediterrum';
+        const html = `Bienvenido a Mediterrum, gracias por ser parte de nuestra gran Familia.
+        <br>
+        Por favor, ingresa o cambia tu contraseña en este link: 
+        <a href="http://localhost:3011/password.html?token=${token}&id=${usuarioId}">
+        Cambiar o ingresar contraseña
+        </a>`;
 
-            try {
-                const { data, error } = await resend.emails.send({
-                    from: "Mediterrum <hey@mediterrum.site>",
-                    to: [email],
-                    subject: subject,
-                    html: html,
-                });
+        try {
+          const { data, error } = await resend.emails.send({
+            from: "Mediterrum <hey@mediterrum.site>",
+            to: [email],
+            subject: subject,
+            html: html,
+          });
 
-                if (error) {
-                    console.error('Error al enviar el correo:', error);
-                    return res.status(500).json({ mensaje: 'Usuario insertado, pero no se pudo enviar el correo.' });
-                }
+          if (error) {
+            console.error('Error al enviar el correo:', error);
+            return res.status(500).json({ mensaje: 'Usuario insertado, pero no se pudo enviar el correo.' });
+          }
 
-                console.log('Correo enviado:', data);
-                res.status(201).json({ mensaje: 'Usuario insertado correctamente y correo enviado.' });
-            } catch (emailError) {
-                console.error('Error al enviar el correo:', emailError);
-                return res.status(500).json({ mensaje: 'Usuario insertado, pero no se pudo enviar el correo.' });
-            }
-        });
+          console.log('Correo enviado:', data);
+          res.status(201).json({ mensaje: 'Usuario insertado correctamente y correo enviado.', token });
+        } catch (emailError) {
+          console.error('Error al enviar el correo:', emailError);
+          return res.status(500).json({ mensaje: 'Usuario insertado, pero no se pudo enviar el correo.' });
+        }
+      });
     });
+  });
 };
 
 const eliminarUsuario = (req, res) => {
@@ -492,8 +515,6 @@ const modificarUsuarioRol = (req, res) => {
     });
   };
   
-
-// Modificar la contraseña de un usuario
 const modificarUsuarioContrasena = (req, res) => {
   const id = req.params.id;
   const { nuevaContrasena } = req.body;
