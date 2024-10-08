@@ -4,7 +4,6 @@ const { Resend } = require('resend');
 const xlsx = require('xlsx');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
 const resend = new Resend(process.env.MAIL_KEY);
 
@@ -683,7 +682,7 @@ const reestablecerUsuarioContrasena = async (req, res) => {
       return res.status(400).json({ mensaje: 'El formato del email no es válido' });
   }
 
-  const checkQuery = 'SELECT id FROM usuarios WHERE email = ?';
+  const checkQuery = 'SELECT id, rol FROM usuarios WHERE email = ?';
   connection.query(checkQuery, [email], async (err, results) => {
       if (err) {
           return res.status(500).send(err);
@@ -692,10 +691,9 @@ const reestablecerUsuarioContrasena = async (req, res) => {
       if (results.length === 0) {
           return res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
-
       const usuarioId = results[0].id;
       const rol = results[0].rol;
-      const token = jwt.sign({ id: usuarioId, rol: rol }, process.env.SECRET_KEY, { expiresIn: '8h' }); // You can adjust the expiry time as needed
+      const token = jwt.sign({ id: usuarioId, rol: rol }, process.env.SECRET_KEY, { expiresIn: '8h' });
 
       const subject = 'Restablecer contraseña';
       const html = `

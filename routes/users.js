@@ -10,7 +10,7 @@ const fs = require('fs');
 router.post('/login', usersController.loginUsuario);
 
 // Ruta para reestablecer la contraseña de un usuario
-router.put('/reestablecer', usersController.reestablecerUsuarioContrasena);
+router.post('/recuperar', usersController.reestablecerUsuarioContrasena);
 
 // Verificar Token
 router.use(verificarToken);
