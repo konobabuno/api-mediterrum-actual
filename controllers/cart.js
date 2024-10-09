@@ -34,10 +34,6 @@ const obtenerProductosEnCarrito = async (req, res) => {
             return res.status(500).send(err);
         }
 
-        if (results[0].length === 0) {
-            return res.status(404).json({ mensaje: 'El carrito está vacío o el usuario no existe.' });
-        }
-
         res.status(200).json(results[0]);
     });
 };
