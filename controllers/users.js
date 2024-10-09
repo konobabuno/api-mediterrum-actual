@@ -353,7 +353,7 @@ const insertarUsuario = async (req, res) => {
         const html = `Bienvenido a Mediterrum, gracias por ser parte de nuestra gran Familia.
         <br>
         Por favor, ingresa o cambia tu contraseña en este link: 
-        <a href="http://localhost:3010/password.html?token=${token}&id=${usuarioId}">
+        <a href="https://mediterrum.site/password.html?token=${token}&id=${usuarioId}">
         Cambiar o ingresar contraseña
         </a>`;
 
@@ -698,7 +698,7 @@ const reestablecerUsuarioContrasena = async (req, res) => {
       const subject = 'Restablecer contraseña';
       const html = `
           <p>Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el enlace de abajo para restablecerla:</p>
-          <a href="http://localhost:3010/password.html?token=${token}&id=${usuarioId}">Restablecer contraseña</a>
+          <a href="https://mediterrum.site/password.html?token=${token}&id=${usuarioId}">Restablecer contraseña</a>
           <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
       `;
 
