@@ -384,20 +384,29 @@ const insertarUsuario = async (req, res) => {
 const eliminarUsuario = (req, res) => {
   const { id } = req.params;
 
-  const checkQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+  const checkUserQuery = 'SELECT COUNT(*) as count FROM usuarios WHERE id = ?';
+  const checkVentasQuery = 'SELECT COUNT(*) as count FROM ventas WHERE usuario = ?';
 
-  connection.query(checkQuery, [id], (err, results) => {
+  connection.query(checkUserQuery, [id], (err, userResults) => {
     if (err) return res.status(500).send(err);
 
-    if (results[0].count === 0) {
+    if (userResults[0].count === 0) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
-    const deleteUsuarioQuery = 'CALL eliminar_usuario(?)';
-
-    connection.query(deleteUsuarioQuery, [id], (err) => {
+    connection.query(checkVentasQuery, [id], (err, ventasResults) => {
       if (err) return res.status(500).send(err);
-      return res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
+
+      if (ventasResults[0].count > 0) {
+        return res.status(400).json({ mensaje: 'No se puede eliminar el usuario porque tiene ventas asociadas' });
+      }
+
+      const deleteUsuarioQuery = 'CALL eliminar_usuario(?)';
+
+      connection.query(deleteUsuarioQuery, [id], (err) => {
+        if (err) return res.status(500).send(err);
+        return res.status(200).json({ mensaje: 'Usuario eliminado correctamente' });
+      });
     });
   });
 };
